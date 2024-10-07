@@ -6,6 +6,7 @@
 body {
   background-color: #333;
   display: flex;
+  flex-direction: column; /* Align items vertically */
   justify-content: center;
   align-items: center;
   min-height: 100vh;
@@ -21,24 +22,25 @@ canvas {
 <body>
 
 <canvas id="gameCanvas" width="400" height="400"></canvas>
+<button id="startButton">Start Game</button>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const startButton = document.getElementById('startButton');
 
-const grid = 16; // Size of each grid cell
-let snake = [{ x: 160, y: 160 }]; // Initial snake position
-let dx = grid; // Initial horizontal movement (start moving right)
+const grid = 16;
+let snake = [{ x: 160, y: 160 }];
+let dx = grid;
 let dy = 0;
 let foodX, foodY;
 let score = 0;
+let gameRunning = false; // Flag to track game state
 
 function generateFood() {
   foodX = Math.floor(Math.random() * (canvas.width / grid)) * grid;
   foodY = Math.floor(Math.random() * (canvas.height / grid)) * grid;
 }
-
-generateFood();
 
 function drawGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -64,44 +66,58 @@ function checkCollision() {
 }
 
 function gameLoop() {
-  if (checkCollision()) {
-    alert('Game Over! Your score: ' + score);
-    snake = [{ x: 160, y: 160 }];
-    dx = grid;
-    dy = 0;
-    score = 0;
+  if (gameRunning) {
+    if (checkCollision()) {
+      alert('Game Over! Your score: ' + score);
+      snake = [{ x: 160, y: 160 }];
+      dx = grid;
+      dy = 0;
+      score = 0;
+      gameRunning = false;
+      startButton.textContent = 'Start Game'; // Reset button text
+    }
+
+    const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+    snake.unshift(head);
+
+    if (head.x === foodX && head.y === foodY) {
+      score++;
+      generateFood();
+    } else {
+      snake.pop();
+    }
+
+    drawGame();
   }
-
-  const head = { x: snake[0].x + dx, y: snake[0].y + dy };
-  snake.unshift(head);
-
-  if (head.x === foodX && head.y === foodY) {
-    score++;
-    generateFood();
-  } else {
-    snake.pop();
-  }
-
-  drawGame();
 }
 
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowLeft' && dx === 0) {
-    dx = -grid;
-    dy = 0;
-  } else if (e.key === 'ArrowUp' && dy === 0) {
-    dx = 0;
-    dy = -grid;
-  } else if (e.key === 'ArrowRight' && dx === 0) {
-    dx = grid;
-    dy = 0;
-  } else if (e.key === 'ArrowDown' && dy === 0) {
-    dx = 0;
-    dy = grid;
+startButton.addEventListener('click', () => {
+  if (!gameRunning) {
+    gameRunning = true;
+    generateFood();
+    startButton.textContent = 'Playing...'; // Change button text
+    gameLoop(); // Start the game loop
+    setInterval(gameLoop, 100);
   }
 });
 
-setInterval(gameLoop, 100);
+document.addEventListener('keydown', (e) => {
+  if (gameRunning) { // Only allow direction changes when the game is running
+    if (e.key === 'ArrowLeft' && dx === 0) {
+      dx = -grid;
+      dy = 0;
+    } else if (e.key === 'ArrowUp' && dy === 0) {
+      dx = 0;
+      dy = -grid;
+    } else if (e.key === 'ArrowRight' && dx === 0) {
+      dx = grid;
+      dy = 0;
+    } else if (e.key === 'ArrowDown' && dy === 0) {
+      dx = 0;
+      dy = grid;
+    }
+  }
+});
 </script>
 
 </body>
