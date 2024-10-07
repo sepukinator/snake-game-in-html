@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Simple Snake Game</title>
+<style>
+body {
+  background-color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+}
+
+canvas {
+  background-color: #000;
+  border: 2px solid #fff;
+}
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="400" height="400"></canvas>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const grid = 16; // Size of each grid cell
+let snake = [{ x: 160, y: 160 }]; // Initial snake position
+let dx = grid; // Initial horizontal movement (start moving right)
+let dy = 0;
+let foodX, foodY;
+let score = 0;
+
+function generateFood() {
+  foodX = Math.floor(Math.random() * (canvas.width / grid)) * grid;
+  foodY = Math.floor(Math.random() * (canvas.height / grid)) * grid;
+}
+
+generateFood();
+
+function drawGame() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'red';
+  ctx.fillRect(foodX, foodY, grid, grid);
+  ctx.fillStyle = 'green';
+  snake.forEach(segment => {
+    ctx.fillRect(segment.x, segment.y, grid, grid);
+    ctx.strokeRect(segment.x, segment.y, grid, grid);
+  });
+}
+
+function checkCollision() {
+  for (let i = 1; i < snake.length; i++) {
+    if (snake[0].x === snake[i].x && snake[0].y === snake[i].y) {
+      return true;
+    }
+  }
+  if (snake[0].x < 0 || snake[0].x >= canvas.width || snake[0].y < 0 || snake[0].y >= canvas.height) {
+    return true;
+  }
+  return false;
+}
+
+function gameLoop() {
+  if (checkCollision()) {
+    alert('Game Over! Your score: ' + score);
+    snake = [{ x: 160, y: 160 }];
+    dx = grid;
+    dy = 0;
+    score = 0;
+  }
+
+  const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+  snake.unshift(head);
+
+  if (head.x === foodX && head.y === foodY) {
+    score++;
+    generateFood();
+  } else {
+    snake.pop();
+  }
+
+  drawGame();
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft' && dx === 0) {
+    dx = -grid;
+    dy = 0;
+  } else if (e.key === 'ArrowUp' && dy === 0) {
+    dx = 0;
+    dy = -grid;
+  } else if (e.key === 'ArrowRight' && dx === 0) {
+    dx = grid;
+    dy = 0;
+  } else if (e.key === 'ArrowDown' && dy === 0) {
+    dx = 0;
+    dy = grid;
+  }
+});
+
+setInterval(gameLoop, 100);
+</script>
+
+</body>
+</html>
